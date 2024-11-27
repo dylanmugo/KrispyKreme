@@ -1,5 +1,4 @@
 import { useState, useEffect } from 'react';
-<<<<<<< HEAD
 import {
   Container,
   Typography,
@@ -19,143 +18,23 @@ export default function ProductsPage() {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-=======
-import { useRouter } from 'next/router';
-
-export default function Products() {
-  const [products, setProducts] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
   const [cart, setCart] = useState([]);
->>>>>>> a71862242b767fa6510a951f83744c5e6a25188c
   const router = useRouter();
 
   useEffect(() => {
     const fetchProducts = async () => {
       try {
-<<<<<<< HEAD
         const response = await fetch('/api/products');
         if (!response.ok) throw new Error('Failed to fetch products');
         const data = await response.json();
         setProducts(data);
       } catch (err) {
-        setError(err.message);
-=======
-        const res = await fetch('/api/products');
-        if (!res.ok) {
-          throw new Error(`Error: ${res.status}`);
-        }
-        const data = await res.json();
-        setProducts(data);
-      } catch (err) {
-        console.error('Failed to fetch products:', err);
         setError('Failed to load products. Please try again later.');
->>>>>>> a71862242b767fa6510a951f83744c5e6a25188c
+        console.error('Error fetching products:', err);
       } finally {
         setLoading(false);
       }
     };
-<<<<<<< HEAD
-    fetchProducts();
-  }, []);
-
-  const addToCart = async (product) => {
-    try {
-      const response = await fetch('/api/cart', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ product }),
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || 'Failed to add product to cart');
-      }
-
-      alert('Product added to cart!');
-    } catch (err) {
-      alert(err.message);
-    }
-  };
-
-  return (
-    <Container maxWidth="md">
-      <Box sx={{ textAlign: 'center', mt: 4 }}>
-        <Typography variant="h4" gutterBottom>
-          Products
-        </Typography>
-        {error && <Alert severity="error">{error}</Alert>}
-      </Box>
-      {loading ? (
-        <Box sx={{ textAlign: 'center', mt: 4 }}>
-          <CircularProgress />
-          <Typography variant="h6" sx={{ mt: 2 }}>
-            Loading products...
-          </Typography>
-        </Box>
-      ) : (
-        <Grid container spacing={4} sx={{ mt: 2 }}>
-          {products.map((product) => (
-            <Grid item xs={12} sm={6} md={4} key={product._id}>
-              <Card>
-                <CardMedia component="img" height="140" image={product.image} alt={product.name} />
-                <CardContent>
-                  <Typography variant="h6">{product.name}</Typography>
-                  <Typography>${product.price.toFixed(2)}</Typography>
-                </CardContent>
-                <CardActions>
-                  <Button
-                    variant="contained"
-                    onClick={() => addToCart(product)}
-                    sx={{ textTransform: 'none' }}
-                  >
-                    Add to Cart
-                  </Button>
-                </CardActions>
-              </Card>
-            </Grid>
-          ))}
-        </Grid>
-      )}
-      {/* Navigation Buttons */}
-      <Box sx={{ textAlign: 'center', mt: 4 }}>
-        <Button
-          variant="outlined"
-          sx={{ mr: 2, textTransform: 'none' }}
-          onClick={() => router.push('/cart')}
-        >
-          Go to Cart
-        </Button>
-        <Button
-          variant="contained"
-          sx={{ textTransform: 'none' }}
-          onClick={() => router.push('/checkout')}
-        >
-          Proceed to Checkout
-        </Button>
-      </Box>
-    </Container>
-  );
-=======
-
-    const addToCart = async (product) => {
-      try {
-        const res = await fetch('/api/cart', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ product }), // Send product data to the cart API
-        });
-    
-        if (!res.ok) {
-          throw new Error('Failed to add item to cart');
-        }
-    
-        alert(`${product.name} added to cart!`);
-      } catch (err) {
-        console.error(err);
-      }
-    };
-    
 
     // Load products
     fetchProducts();
@@ -172,43 +51,147 @@ export default function Products() {
     alert(`${product.name} added to cart!`);
   };
 
-  const goToCart = () => {
-    router.push('/cart'); // Redirect to the cart page
-  };
-
-  if (loading) return <p>Loading products...</p>;
-  if (error) return <p>{error}</p>;
-
-
-  
-
   return (
-    <div>
-      <h1>Products</h1>
-      <ul style={{ listStyle: 'none', padding: 0 }}>
-        {products.map((product) => (
-          <li key={product._id} style={{ marginBottom: '20px' }}>
-            <h2>{product.name}</h2>
-            <img
-              src={product.image}
-              alt={product.name}
-              style={{ maxWidth: '200px', borderRadius: '10px' }}
-            />
-            <p>{product.description}</p>
-            <p>${product.price}</p>
-            <button onClick={() => addToCart(product)}>Add to Cart</button>
-          </li>
-        ))}
-      </ul>
-
-      {cart.length > 0 && (
-        <button onClick={goToCart}>
-          Go to Cart ({cart.length} {cart.length === 1 ? 'item' : 'items'})
-        </button>
+    <Container maxWidth="md" sx={{ py: 5 }}>
+      <Box sx={{ textAlign: 'center', mb: 4 }}>
+        <Typography
+          variant="h4"
+          gutterBottom
+          sx={{
+            fontWeight: 'bold',
+            color: '#ff7b54',
+          }}
+        >
+          Products
+        </Typography>
+        {error && (
+          <Alert
+            severity="error"
+            sx={{
+              mb: 3,
+              borderRadius: 2,
+              boxShadow: '0px 4px 10px rgba(255, 123, 84, 0.3)',
+            }}
+          >
+            {error}
+          </Alert>
+        )}
+      </Box>
+      {loading ? (
+        <Box
+          sx={{
+            textAlign: 'center',
+            mt: 4,
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+          }}
+        >
+          <CircularProgress sx={{ color: '#ff7b54' }} />
+          <Typography
+            variant="h6"
+            sx={{
+              mt: 2,
+              color: '#555',
+            }}
+          >
+            Loading products...
+          </Typography>
+        </Box>
+      ) : (
+        <Grid container spacing={4}>
+          {products.map((product) => (
+            <Grid item xs={12} sm={6} md={4} key={product._id}>
+              <Card
+                sx={{
+                  borderRadius: 2,
+                  boxShadow: '0px 4px 10px rgba(255, 123, 84, 0.2)',
+                  '&:hover': { boxShadow: '0px 6px 15px rgba(255, 123, 84, 0.3)' },
+                }}
+              >
+                <CardMedia
+                  component="img"
+                  height="200"
+                  image={product.image}
+                  alt={product.name}
+                  sx={{
+                    borderTopLeftRadius: 8,
+                    borderTopRightRadius: 8,
+                  }}
+                />
+                <CardContent
+                  sx={{
+                    textAlign: 'center',
+                    backgroundColor: '#fff8f0',
+                  }}
+                >
+                  <Typography
+                    variant="h6"
+                    sx={{
+                      fontWeight: 'bold',
+                      color: '#333',
+                    }}
+                  >
+                    {product.name}
+                  </Typography>
+                  <Typography
+                    sx={{
+                      color: '#ff7b54',
+                      fontWeight: 'bold',
+                      mt: 1,
+                    }}
+                  >
+                    ${product.price.toFixed(2)}
+                  </Typography>
+                </CardContent>
+                <CardActions sx={{ justifyContent: 'center', p: 2 }}>
+                  <Button
+                    variant="contained"
+                    onClick={() => addToCart(product)}
+                    sx={{
+                      textTransform: 'none',
+                      backgroundColor: '#ff7b54',
+                      '&:hover': { backgroundColor: '#ff4500' },
+                      boxShadow: '0px 4px 8px rgba(255, 123, 84, 0.3)',
+                    }}
+                  >
+                    Add to Cart
+                  </Button>
+                </CardActions>
+              </Card>
+            </Grid>
+          ))}
+        </Grid>
       )}
-    </div>
+      <Box sx={{ textAlign: 'center', mt: 4 }}>
+        {cart.length > 0 && (
+          <Button
+            variant="outlined"
+            sx={{
+              mr: 2,
+              textTransform: 'none',
+              color: '#ff7b54',
+              borderColor: '#ff7b54',
+              '&:hover': { backgroundColor: '#fff8f0', borderColor: '#ff4500' },
+            }}
+            onClick={() => router.push('/cart')}
+          >
+            Go to Cart ({cart.length} {cart.length === 1 ? 'item' : 'items'})
+          </Button>
+        )}
+        <Button
+          variant="contained"
+          sx={{
+            textTransform: 'none',
+            backgroundColor: '#ff7b54',
+            '&:hover': { backgroundColor: '#ff4500' },
+            boxShadow: '0px 4px 8px rgba(255, 123, 84, 0.3)',
+          }}
+          onClick={() => router.push('/checkout')}
+        >
+          Proceed to Checkout
+        </Button>
+      </Box>
+    </Container>
   );
-
-  
->>>>>>> a71862242b767fa6510a951f83744c5e6a25188c
 }

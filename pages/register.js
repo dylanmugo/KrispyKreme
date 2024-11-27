@@ -1,8 +1,5 @@
 import { useState } from 'react';
 import { useRouter } from 'next/router';
-<<<<<<< HEAD
-import { Container, Typography, TextField, Button, Alert, Box } from '@mui/material';
-=======
 import {
   Container,
   Box,
@@ -12,7 +9,6 @@ import {
   Alert,
   Link,
 } from '@mui/material';
->>>>>>> a71862242b767fa6510a951f83744c5e6a25188c
 
 export default function RegisterPage() {
   const [email, setEmail] = useState('');
@@ -35,39 +31,19 @@ export default function RegisterPage() {
       });
 
       const data = await response.json();
-<<<<<<< HEAD
-      if (!response.ok) throw new Error(data.message || 'Registration failed');
+
+      if (!response.ok) {
+        throw new Error(data.message || 'Registration failed. Please try again.');
+      }
 
       setSuccessMessage('Registration successful! Redirecting to login...');
       setTimeout(() => router.push('/login'), 2000);
     } catch (error) {
-      setErrorMessage(error.message);
-=======
-
-      if (response.ok) {
-        setSuccessMessage('Registration successful! Redirecting to login...');
-        setTimeout(() => {
-          router.push('/login');
-        }, 2000);
-      } else {
-        setErrorMessage(data.message || 'Registration failed. Please try again.');
-      }
-    } catch (error) {
-      setErrorMessage('Something went wrong. Please try again.');
->>>>>>> a71862242b767fa6510a951f83744c5e6a25188c
+      setErrorMessage(error.message || 'Something went wrong. Please try again.');
     }
   };
 
   return (
-<<<<<<< HEAD
-    <Container maxWidth="sm">
-      <Box sx={{ mt: 4, textAlign: 'center' }}>
-        <Typography variant="h4" gutterBottom>
-          Register
-        </Typography>
-        {errorMessage && <Alert severity="error">{errorMessage}</Alert>}
-        {successMessage && <Alert severity="success">{successMessage}</Alert>}
-=======
     <Container maxWidth="sm" sx={{ py: 5 }}>
       <Box
         sx={{
@@ -95,43 +71,24 @@ export default function RegisterPage() {
             {successMessage}
           </Alert>
         )}
->>>>>>> a71862242b767fa6510a951f83744c5e6a25188c
         <form onSubmit={handleRegister}>
           <TextField
             fullWidth
             label="Email"
             type="email"
-<<<<<<< HEAD
             margin="normal"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            required
-=======
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            margin="normal"
             required
             variant="outlined"
->>>>>>> a71862242b767fa6510a951f83744c5e6a25188c
           />
           <TextField
             fullWidth
             label="Password"
             type="password"
-<<<<<<< HEAD
             margin="normal"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            required
-          />
-          <Button variant="contained" fullWidth type="submit" sx={{ mt: 3 }}>
-            Register
-          </Button>
-        </form>
-=======
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            margin="normal"
             required
             variant="outlined"
           />
@@ -157,7 +114,6 @@ export default function RegisterPage() {
             Login
           </Link>
         </Typography>
->>>>>>> a71862242b767fa6510a951f83744c5e6a25188c
       </Box>
     </Container>
   );

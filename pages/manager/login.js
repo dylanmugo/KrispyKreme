@@ -7,10 +7,13 @@ import {
   Button,
   Alert,
   Box,
+  Paper,
+  Avatar,
 } from '@mui/material';
+import LockOutlinedIcon from '@mui/icons-material/LockOutlined';
 
-export default function ManagerLogin() {
-  const [credentials, setCredentials] = useState({ username: '', password: '' });
+export default function ManagerLoginPage() {
+  const [credentials, setCredentials] = useState({ email: '', password: '' });
   const [errorMessage, setErrorMessage] = useState('');
   const router = useRouter();
 
@@ -30,10 +33,11 @@ export default function ManagerLogin() {
 
       if (response.ok) {
         const { token } = await response.json();
-        localStorage.setItem('managerToken', token); // Save token
+        localStorage.setItem('managerToken', token); // Save token for session management
         router.push('/manager/dashboard'); // Redirect to dashboard
       } else {
-        setErrorMessage('Invalid username or password.');
+        const errorData = await response.json();
+        setErrorMessage(errorData.message || 'Invalid login credentials.');
       }
     } catch (error) {
       console.error('Login error:', error);
@@ -43,38 +47,85 @@ export default function ManagerLogin() {
 
   return (
     <Container maxWidth="sm" sx={{ py: 5 }}>
-      <Typography variant="h4" align="center" gutterBottom>
-        Manager Login
-      </Typography>
-      {errorMessage && <Alert severity="error">{errorMessage}</Alert>}
-      <Box sx={{ mt: 3 }}>
-        <TextField
-          label="Username"
-          name="username"
-          fullWidth
-          margin="normal"
-          value={credentials.username}
-          onChange={handleInputChange}
-        />
-        <TextField
-          label="Password"
-          name="password"
-          type="password"
-          fullWidth
-          margin="normal"
-          value={credentials.password}
-          onChange={handleInputChange}
-        />
-        <Button
-          variant="contained"
-          color="primary"
-          fullWidth
-          sx={{ mt: 3 }}
-          onClick={handleLogin}
+      <Paper
+        elevation={3}
+        sx={{
+          p: 4,
+          borderRadius: 3,
+          textAlign: 'center',
+          backgroundColor: '#fff8f0',
+          boxShadow: '0px 4px 20px rgba(255, 123, 84, 0.2)',
+        }}
+      >
+        <Avatar
+          sx={{
+            mx: 'auto',
+            mb: 2,
+            bgcolor: '#ff7b54',
+          }}
         >
-          Log In
-        </Button>
-      </Box>
+          <LockOutlinedIcon />
+        </Avatar>
+        <Typography
+          variant="h4"
+          gutterBottom
+          sx={{
+            fontWeight: 'bold',
+            color: '#ff7b54',
+          }}
+        >
+          Manager Login
+        </Typography>
+        {errorMessage && <Alert severity="error" sx={{ mb: 3 }}>{errorMessage}</Alert>}
+        <Box>
+          <TextField
+            label="Email"
+            name="email"
+            fullWidth
+            margin="normal"
+            variant="outlined"
+            value={credentials.email}
+            onChange={handleInputChange}
+            sx={{
+              '& .MuiOutlinedInput-root': {
+                '& fieldset': { borderColor: '#ff7b54' },
+                '&:hover fieldset': { borderColor: '#ff4500' },
+              },
+            }}
+          />
+          <TextField
+            label="Password"
+            name="password"
+            type="password"
+            fullWidth
+            margin="normal"
+            variant="outlined"
+            value={credentials.password}
+            onChange={handleInputChange}
+            sx={{
+              '& .MuiOutlinedInput-root': {
+                '& fieldset': { borderColor: '#ff7b54' },
+                '&:hover fieldset': { borderColor: '#ff4500' },
+              },
+            }}
+          />
+          <Button
+            variant="contained"
+            fullWidth
+            onClick={handleLogin}
+            sx={{
+              mt: 3,
+              py: 1.5,
+              fontWeight: 'bold',
+              backgroundColor: '#ff7b54',
+              '&:hover': { backgroundColor: '#ff4500' },
+              boxShadow: '0px 4px 10px rgba(255, 123, 84, 0.3)',
+            }}
+          >
+            Log In
+          </Button>
+        </Box>
+      </Paper>
     </Container>
   );
 }

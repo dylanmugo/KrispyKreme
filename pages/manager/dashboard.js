@@ -49,26 +49,96 @@ export default function ManagerDashboard() {
     fetchStatistics();
   }, [router]);
 
-  if (loading) return <CircularProgress />;
+  if (loading) {
+    return (
+      <Box
+        sx={{
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
+          height: '50vh',
+        }}
+      >
+        <CircularProgress sx={{ color: '#ff7b54' }} />
+      </Box>
+    );
+  }
 
   return (
     <Container maxWidth="md" sx={{ py: 5 }}>
-      <Typography variant="h4" align="center" gutterBottom>
+      <Typography
+        variant="h4"
+        align="center"
+        gutterBottom
+        sx={{
+          fontWeight: 'bold',
+          color: '#ff7b54',
+        }}
+      >
         Manager Dashboard
       </Typography>
-      {errorMessage && <Alert severity="error">{errorMessage}</Alert>}
+      {errorMessage && (
+        <Alert severity="error" sx={{ mb: 3 }}>
+          {errorMessage}
+        </Alert>
+      )}
       {statistics && (
         <Box>
-          <Card sx={{ mb: 3 }}>
+          <Card
+            sx={{
+              mb: 3,
+              borderRadius: '10px',
+              boxShadow: '0px 4px 10px rgba(255, 123, 84, 0.3)',
+              backgroundColor: '#fff8f0',
+            }}
+          >
             <CardContent>
-              <Typography variant="h6">Total Orders</Typography>
-              <Typography variant="h4">{statistics.totalOrders}</Typography>
+              <Typography
+                variant="h6"
+                sx={{
+                  color: '#ff7b54',
+                  fontWeight: 'bold',
+                }}
+              >
+                Total Orders
+              </Typography>
+              <Typography
+                variant="h4"
+                sx={{
+                  color: '#333',
+                  fontWeight: 'bold',
+                }}
+              >
+                {statistics.totalOrders}
+              </Typography>
             </CardContent>
           </Card>
-          <Card>
+          <Card
+            sx={{
+              borderRadius: '10px',
+              boxShadow: '0px 4px 10px rgba(255, 123, 84, 0.3)',
+              backgroundColor: '#fff8f0',
+            }}
+          >
             <CardContent>
-              <Typography variant="h6">Total Revenue</Typography>
-              <Typography variant="h4">${statistics.totalRevenue.toFixed(2)}</Typography>
+              <Typography
+                variant="h6"
+                sx={{
+                  color: '#ff7b54',
+                  fontWeight: 'bold',
+                }}
+              >
+                Total Revenue
+              </Typography>
+              <Typography
+                variant="h4"
+                sx={{
+                  color: '#333',
+                  fontWeight: 'bold',
+                }}
+              >
+                ${statistics.totalRevenue.toFixed(2)}
+              </Typography>
             </CardContent>
           </Card>
         </Box>
