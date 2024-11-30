@@ -1,4 +1,4 @@
-import clientPromise from '../../../../lib/mongodb'; // Adjust path if file is nested deeper
+import clientPromise from '../../../lib/mongodb';
 
 
 export default async function handler(req, res) {
