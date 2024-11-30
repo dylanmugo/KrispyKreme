@@ -1,30 +1,31 @@
-// pages/api/products.js
-
 import clientPromise from '../../lib/mongodb';
 
 export default async function handler(req, res) {
-  console.log(`Received ${req.method} request at /api/products`);
-
-  if (req.method === 'GET') {
-    try {
+  try {
+    if (req.method === 'GET') {
+      // Connect to the database
       const client = await clientPromise;
-      const db = client.db('donuts'); // Replace with your actual database name
+      const db = client.db('donuts'); // Replace with your database name
       const productsCollection = db.collection('products');
 
-      // Fetch all products
+      // Fetch all products from the collection
       const products = await productsCollection.find().toArray();
-      console.log('GET /api/products - Products fetched:', products);
 
       // Respond with the fetched products
-      res.status(200).json(products);
-    } catch (error) {
-      console.error('Error in GET /api/products:', error);
-      res.status(500).json({ message: 'Internal server error' });
+      res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+      res.setHeader('Pragma', 'no-cache');
+      res.setHeader('Expires', '0');
+      res.setHeader('Surrogate-Control', 'no-store');
+
+      return res.status(200).json(products);
     }
-  } else {
-    // Method Not Allowed
-    console.log(`Method ${req.method} not allowed on /api/products`);
+
+    // Handle unsupported methods
     res.setHeader('Allow', ['GET']);
-    res.status(405).json({ message: `Method ${req.method} Not Allowed` });
+    return res.status(405).json({ message: `Method ${req.method} Not Allowed` });
+  } catch (error) {
+    // Handle server errors
+    console.error('Error handling products API:', error.message || error);
+    return res.status(500).json({ message: 'Internal server error' });
   }
 }

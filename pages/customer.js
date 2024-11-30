@@ -14,7 +14,7 @@ export default function CustomerPage() {
       try {
         const lat = 53.3498; // Latitude for Dublin
         const lon = -6.2603; // Longitude for Dublin
-        const apiKey = '3d094cd688ed8a9eb505fed7d3ac3d82'; // Replace with your OpenWeatherMap API key
+        const apiKey = '3d094cd688ed8a9eb505fed7d3ac3d82'; 
         const response = await fetch(
           `https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lon}&units=metric&appid=${apiKey}`
         );

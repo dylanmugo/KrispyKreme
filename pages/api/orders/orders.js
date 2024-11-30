@@ -1,69 +1,71 @@
 import clientPromise from '../../lib/mongodb';
+import { ObjectId } from 'mongodb';
 
 export default async function handler(req, res) {
-  if (req.method === 'POST') {
-    try {
-      const { userDetails, items, total } = req.body; // Changed to match client-side request
+  try {
+    // Connect to MongoDB
+    const client = await clientPromise;
+    const db = client.db('donuts');
+    const ordersCollection = db.collection('orders');
 
-      // Validate incoming data
-      if (!userDetails || !items || items.length === 0 || total === undefined) {
-        return res.status(400).json({ message: 'Invalid order data' });
+    if (req.method === 'GET') {
+      // Get Order by ID
+      const { orderId } = req.query;
+
+      if (!orderId || !ObjectId.isValid(orderId)) {
+        return res.status(400).json({ message: 'Invalid or missing Order ID' });
       }
 
-      // Establish database connection
-      const client = await clientPromise;
-      const db = client.db('donuts'); // Replace with your database name
+      const order = await ordersCollection.findOne({ _id: new ObjectId(orderId) });
 
-      // Check if customer already exists
-      const existingCustomer = await db
-        .collection('customers')
-        .findOne({ email: userDetails.email });
-
-      let customerId;
-
-      if (existingCustomer) {
-        // Use existing customer
-        customerId = existingCustomer._id;
-      } else {
-        // Create new customer
-        const customerResult = await db.collection('customers').insertOne({
-          ...userDetails,
-          orderHistory: [], // Initialize order history
-        });
-
-        customerId = customerResult.insertedId;
+      if (!order) {
+        return res.status(404).json({ message: 'Order not found' });
       }
 
-      // Save the order
-      const order = {
-        customerId,
+      return res.status(200).json(order);
+    }
+
+    if (req.method === 'POST') {
+      // Create a New Order
+      const { customerDetails, items, total } = req.body;
+
+      // Validate input
+      if (
+        !customerDetails ||
+        !customerDetails.name ||
+        !customerDetails.email ||
+        !customerDetails.address
+      ) {
+        return res.status(400).json({ message: 'Customer details are required.' });
+      }
+
+      if (!items || items.length === 0) {
+        return res.status(400).json({ message: 'Order must include at least one item.' });
+      }
+
+      if (!total || total <= 0) {
+        return res.status(400).json({ message: 'Order total must be greater than zero.' });
+      }
+
+      // Insert the new order
+      const newOrder = {
+        customerDetails,
         items,
         total,
-        createdAt: new Date(),
         status: 'Pending',
+        createdAt: new Date(),
       };
 
-      const orderResult = await db.collection('orders').insertOne(order);
+      const result = await ordersCollection.insertOne(newOrder);
 
-      // Update customer's order history
-      await db.collection('customers').updateOne(
-        { _id: customerId },
-        { $push: { orderHistory: orderResult.insertedId } }
-      );
-
-      // Respond with the order ID
-      res
-        .status(201)
-        .json({ message: 'Order placed successfully', orderId: orderResult.insertedId });
-    } catch (error) {
-      console.error('Error placing order:', error);
-      res.status(500).json({
-        message: 'Internal server error',
-        error: error.message,
-      });
+      return res.status(201).json({ orderId: result.insertedId });
     }
-  } else {
-    res.setHeader('Allow', ['POST']);
-    res.status(405).json({ message: 'Method Not Allowed' });
+
+    // Handle unsupported methods
+    res.setHeader('Allow', ['GET', 'POST']);
+    return res.status(405).json({ message: `Method ${req.method} Not Allowed` });
+  } catch (error) {
+    console.error('Error in /api/orders:', error);
+    return res.status(500).json({ message: 'Internal server error' });
   }
 }
