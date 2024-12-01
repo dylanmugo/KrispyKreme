@@ -1,6 +1,6 @@
 import clientPromise from '../../../lib/mongodb';
 import { ObjectId } from 'mongodb';
-import { sendEmail } from '../../../lib/email'; // Reusable email utility
+import { sendEmail } from '../../../lib/email'; // Ensure the email utility is correctly set up
 
 export default async function handler(req, res) {
   try {
@@ -18,6 +18,7 @@ export default async function handler(req, res) {
         return res.status(400).json({ message: 'Invalid or missing Order ID' });
       }
 
+      console.log('Fetching order with ID:', orderId);
       const order = await ordersCollection.findOne({ _id: new ObjectId(orderId) });
 
       if (!order) {
@@ -25,13 +26,15 @@ export default async function handler(req, res) {
         return res.status(404).json({ message: 'Order not found' });
       }
 
-      console.log('Order fetched successfully:', orderId);
+      console.log('Order fetched successfully:', order);
       return res.status(200).json(order);
     }
 
     if (req.method === 'POST') {
       // Create a New Order
       const { customerDetails, items, total } = req.body;
+
+      console.log('Received order data:', { customerDetails, items, total });
 
       // Validate input
       if (
@@ -71,34 +74,33 @@ export default async function handler(req, res) {
         createdAt: new Date(),
       };
 
+      console.log('Inserting new order into database:', newOrder);
       const result = await ordersCollection.insertOne(newOrder);
 
-      console.log('New order created:', result.insertedId);
+      console.log('Order created successfully with ID:', result.insertedId);
 
       // Send confirmation email
       try {
-        const emailHtml = `
-          <h1>Order Confirmation</h1>
-          <p>Thank you for your order, ${customerDetails.name}!</p>
-          <p><strong>Order ID:</strong> ${result.insertedId}</p>
-          <h2>Order Summary:</h2>
-          <ul>
-            ${items.map(item => `<li>${item.quantity} x ${item.name} - $${item.price.toFixed(2)}</li>`).join('')}
-          </ul>
-          <p><strong>Total: $${newOrder.total}</strong></p>
-          <p>We’ll notify you when your order is on its way!</p>
-        `;
-
+        console.log('Attempting to send confirmation email...');
         await sendEmail({
           to: customerDetails.email,
           subject: 'Your Krispy Kreme Order Confirmation',
           text: `Thank you for your order, ${customerDetails.name}! Your order ID is ${result.insertedId}.`,
-          html: emailHtml,
+          html: `
+            <h1>Order Confirmation</h1>
+            <p>Thank you for your order, ${customerDetails.name}!</p>
+            <p><strong>Order ID:</strong> ${result.insertedId}</p>
+            <h2>Order Summary:</h2>
+            <ul>
+              ${items.map(item => `<li>${item.quantity} x ${item.name} - $${item.price.toFixed(2)}</li>`).join('')}
+            </ul>
+            <p><strong>Total: $${newOrder.total}</strong></p>
+            <p>We’ll notify you when your order is on its way!</p>
+          `,
         });
-
-        console.log('Confirmation email sent to:', customerDetails.email);
+        console.log('Email sent successfully to:', customerDetails.email);
       } catch (emailError) {
-        console.error('Error sending confirmation email:', emailError);
+        console.error('Failed to send email:', emailError);
       }
 
       return res.status(201).json({ orderId: result.insertedId });
@@ -106,6 +108,7 @@ export default async function handler(req, res) {
 
     // Handle unsupported methods
     res.setHeader('Allow', ['GET', 'POST']);
+    console.warn('Unsupported HTTP method:', req.method);
     return res.status(405).json({ message: `Method ${req.method} Not Allowed` });
   } catch (error) {
     console.error('Error in /api/orders:', error);
