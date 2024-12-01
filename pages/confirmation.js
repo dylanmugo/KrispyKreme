@@ -14,6 +14,8 @@ const ConfirmationPage = () => {
 
     const fetchOrder = async () => {
       try {
+        console.log('Fetching order with ID:', orderId); // Debugging log
+
         const response = await fetch(`/api/orders?orderId=${orderId}`);
         if (!response.ok) {
           const { message } = await response.json();
@@ -24,7 +26,7 @@ const ConfirmationPage = () => {
         setOrder(data);
       } catch (err) {
         console.error('Error fetching order:', err);
-        setError(err.message);
+        setError(err.message || 'We couldn’t retrieve your order. Please try again.');
       } finally {
         setLoading(false);
       }
@@ -37,7 +39,7 @@ const ConfirmationPage = () => {
     return (
       <Container>
         <CircularProgress />
-        <Typography>Loading order details...</Typography>
+        <Typography sx={{ mt: 2 }}>Loading order details...</Typography>
       </Container>
     );
   }
@@ -46,6 +48,9 @@ const ConfirmationPage = () => {
     return (
       <Container>
         <Alert severity="error">{error}</Alert>
+        <Typography sx={{ mt: 2 }}>
+          If the problem persists, please contact our support team.
+        </Typography>
       </Container>
     );
   }
@@ -82,6 +87,9 @@ const ConfirmationPage = () => {
           </li>
         ))}
       </ul>
+      <Typography sx={{ mt: 3 }}>
+        A confirmation email has been sent to your inbox. If you have any questions, contact us at support@krispykreme.com.
+      </Typography>
     </Container>
   );
 };
