@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Container, Typography, CircularProgress, Alert, Box, Button } from '@mui/material';
+import { Container, Typography, CircularProgress, Alert, Box, Button, AppBar, Toolbar } from '@mui/material';
 import { useRouter } from 'next/router';
 
 export default function CartPage() {
@@ -60,50 +60,92 @@ export default function CartPage() {
   }
 
   return (
-    <Container>
-      <Typography variant="h4" gutterBottom align="center">
-        Your Cart
-      </Typography>
-      {cart.length === 0 ? (
-        <Typography variant="h6" align="center" sx={{ mt: 4 }}>
-          Your cart is empty.
+    <>
+      {/* Navbar */}
+      <AppBar position="static" sx={{ backgroundColor: 'orange' }}>
+        <Toolbar>
+          <Typography
+            variant="h6"
+            component="div"
+            sx={{ flexGrow: 1, cursor: 'pointer' }}
+            onClick={() => router.push('/')}
+          >
+            Krispy Kreme
+          </Typography>
+          <Button color="inherit" onClick={() => router.push('/products')}>
+            Products
+          </Button>
+          <Button color="inherit" onClick={() => router.push('/checkout')}>
+            Checkout
+          </Button>
+        </Toolbar>
+      </AppBar>
+
+      {/* Cart Content */}
+      <Container sx={{ mt: 4 }}>
+        <Typography variant="h4" gutterBottom align="center" sx={{ color: 'orange' }}>
+          Your Cart
         </Typography>
-      ) : (
-        <Box sx={{ mt: 2 }}>
-          {cart.map((item) => (
-            <Box
-              key={item._id}
-              display="flex"
-              justifyContent="space-between"
-              alignItems="center"
-              mb={2}
-              p={2}
-              border="1px solid #ddd"
-              borderRadius="8px"
-            >
-              <Typography>
-                {item.quantity} x {item.name} @ ${item.price.toFixed(2)}
-              </Typography>
-              <Button
-                variant="outlined"
-                color="error"
-                onClick={() => handleRemove(item._id)}
-              >
-                Remove
-              </Button>
-            </Box>
-          ))}
+        {cart.length === 0 ? (
           <Box sx={{ textAlign: 'center', mt: 4 }}>
+            <Typography variant="h6" sx={{ mb: 2 }}>
+              Your cart is empty.
+            </Typography>
             <Button
               variant="contained"
               color="primary"
-              onClick={() => router.push('/checkout')}
+              onClick={() => router.push('/products')}
             >
-              Proceed to Checkout
+              Explore Products
             </Button>
           </Box>
-        </Box>
-      )}
-    </Container>
+        ) : (
+          <Box sx={{ mt: 4 }}>
+            {cart.map((item) => (
+              <Box
+                key={item._id}
+                sx={{
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                  mb: 2,
+                  p: 2,
+                  border: '2px solid orange',
+                  borderRadius: '8px',
+                  transition: 'transform 0.2s, box-shadow 0.2s',
+                  '&:hover': {
+                    transform: 'scale(1.02)',
+                    boxShadow: '0px 4px 15px rgba(0, 0, 0, 0.1)',
+                  },
+                }}
+              >
+                <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                  <Typography sx={{ fontWeight: 'bold', color: 'orange' }}>
+                    {item.quantity} x {item.name}
+                  </Typography>
+                  <Typography sx={{ ml: 2 }}>${item.price.toFixed(2)}</Typography>
+                </Box>
+                <Button
+                  variant="outlined"
+                  color="error"
+                  onClick={() => handleRemove(item._id)}
+                >
+                  Remove
+                </Button>
+              </Box>
+            ))}
+            <Box sx={{ textAlign: 'center', mt: 4 }}>
+              <Button
+                variant="contained"
+                color="primary"
+                onClick={() => router.push('/checkout')}
+              >
+                Proceed to Checkout
+              </Button>
+            </Box>
+          </Box>
+        )}
+      </Container>
+    </>
   );
 }

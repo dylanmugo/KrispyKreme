@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Container, Typography, Box, Button, Badge, Alert } from '@mui/material';
+import { Container, Typography, Box, Button, Badge, Alert, AppBar, Toolbar } from '@mui/material';
 
 const ProductsPage = () => {
   const [products, setProducts] = useState([]);
@@ -58,58 +58,91 @@ const ProductsPage = () => {
   };
 
   return (
-    <Container sx={{ mt: 4 }}>
-      <Typography variant="h4" gutterBottom>
-        Products
-      </Typography>
-
-      {error && <Alert severity="error">{error}</Alert>}
-      {successMessage && <Alert severity="success">{successMessage}</Alert>}
-
-      <Box sx={{ display: 'flex', justifyContent: 'flex-end', mb: 2 }}>
-        <Badge badgeContent={cartCount} color="primary">
-          <Button variant="contained" onClick={() => window.location.href = '/cart'}>
-            Cart
+    <>
+      {/* Navbar */}
+      <AppBar position="static" sx={{ backgroundColor: 'orange' }}>
+        <Toolbar>
+          <Typography
+            variant="h6"
+            component="div"
+            sx={{ flexGrow: 1, cursor: 'pointer' }}
+            onClick={() => (window.location.href = '/')}
+          >
+            Krispy Kreme
+          </Typography>
+          <Button color="inherit" onClick={() => (window.location.href = '/products')}>
+            Products
           </Button>
-        </Badge>
-      </Box>
+          <Badge badgeContent={cartCount} color="secondary">
+            <Button color="inherit" onClick={() => (window.location.href = '/cart')}>
+              Cart
+            </Button>
+          </Badge>
+        </Toolbar>
+      </AppBar>
 
-      <Box>
-  {products.map((product) => (
-    <Box
-      key={product._id}
-      sx={{
-        display: 'flex',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        mb: 2,
-        p: 2,
-        border: '1px solid #ddd',
-        borderRadius: '8px',
-      }}
-    >
-      <Box sx={{ display: 'flex', alignItems: 'center' }}>
-        <img
-          src={product.image}
-          alt={product.name}
-          style={{ width: '100px', height: '100px', marginRight: '10px', borderRadius: '8px' }}
-          onError={(e) => (e.target.src = '/fallback-image.jpg')} // Fallback image
-        />
-        <Typography>
-          {product.name} - ${product.price.toFixed(2)}
+      {/* Products Section */}
+      <Container sx={{ mt: 4 }}>
+        <Typography variant="h4" gutterBottom align="center" sx={{ color: 'orange' }}>
+          Our Products
         </Typography>
-      </Box>
-      <Button
-        variant="outlined"
-        onClick={() => handleAddToCart(product)}
-      >
-        Add to Cart
-      </Button>
-    </Box>
-  ))}
-</Box>
 
-    </Container>
+        {error && <Alert severity="error">{error}</Alert>}
+        {successMessage && <Alert severity="success">{successMessage}</Alert>}
+
+        {products.length === 0 ? (
+          <Typography variant="h6" align="center" sx={{ mt: 4 }}>
+            No products available at the moment. Please check back later!
+          </Typography>
+        ) : (
+          <Box
+            sx={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))',
+              gap: 3,
+              mt: 4,
+            }}
+          >
+            {products.map((product) => (
+              <Box
+                key={product._id}
+                sx={{
+                  border: '1px solid #ddd',
+                  borderRadius: '8px',
+                  overflow: 'hidden',
+                  transition: 'transform 0.2s, box-shadow 0.2s',
+                  '&:hover': {
+                    transform: 'scale(1.05)',
+                    boxShadow: '0px 4px 15px rgba(0, 0, 0, 0.2)',
+                  },
+                }}
+              >
+                <img
+                  src={product.image}
+                  alt={product.name}
+                  style={{ width: '100%', height: '200px', objectFit: 'cover' }}
+                  onError={(e) => (e.target.src = '/fallback-image.jpg')} // Fallback image
+                />
+                <Box sx={{ p: 2 }}>
+                  <Typography variant="h6" sx={{ fontWeight: 'bold', color: 'orange' }}>
+                    {product.name}
+                  </Typography>
+                  <Typography sx={{ mb: 2 }}>${product.price.toFixed(2)}</Typography>
+                  <Button
+                    variant="contained"
+                    color="primary"
+                    fullWidth
+                    onClick={() => handleAddToCart(product)}
+                  >
+                    Add to Cart
+                  </Button>
+                </Box>
+              </Box>
+            ))}
+          </Box>
+        )}
+      </Container>
+    </>
   );
 };
 
