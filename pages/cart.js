@@ -4,6 +4,7 @@ import { useRouter } from 'next/router';
 
 export default function CartPage() {
   const [cart, setCart] = useState([]);
+  const [total, setTotal] = useState(0); // State to store the total cost
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const router = useRouter();
@@ -17,6 +18,10 @@ export default function CartPage() {
 
         const data = await response.json();
         setCart(data);
+
+        // Calculate total cost
+        const totalCost = data.reduce((sum, item) => sum + item.price * item.quantity, 0);
+        setTotal(totalCost);
       } catch (err) {
         setError(err.message);
       } finally {
@@ -34,7 +39,12 @@ export default function CartPage() {
       if (!response.ok) throw new Error('Failed to remove item');
 
       // Refresh cart
-      setCart((prevCart) => prevCart.filter((item) => item._id !== itemId));
+      setCart((prevCart) => {
+        const updatedCart = prevCart.filter((item) => item._id !== itemId);
+        const updatedTotal = updatedCart.reduce((sum, item) => sum + item.price * item.quantity, 0);
+        setTotal(updatedTotal); // Update the total cost
+        return updatedCart;
+      });
     } catch (err) {
       alert(err.message);
     }
@@ -134,6 +144,14 @@ export default function CartPage() {
                 </Button>
               </Box>
             ))}
+            {/* Total Cost */}
+            <Typography
+              variant="h5"
+              align="center"
+              sx={{ mt: 4, fontWeight: 'bold', color: 'orange' }}
+            >
+              Total: ${total.toFixed(2)}
+            </Typography>
             <Box sx={{ textAlign: 'center', mt: 4 }}>
               <Button
                 variant="contained"

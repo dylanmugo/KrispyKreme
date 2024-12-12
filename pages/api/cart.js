@@ -1,5 +1,8 @@
+// pages/api/cart.js
+
 import clientPromise from '../../lib/mongodb';
 import { ObjectId } from 'mongodb';
+import validator from 'validator';
 
 export default async function handler(req, res) {
   try {
@@ -10,35 +13,67 @@ export default async function handler(req, res) {
     if (req.method === 'POST') {
       const { product } = req.body;
 
-      // Validate product input
-      if (!product || !product._id || !product.name || !product.price) {
+      // Validate product data
+      if (
+        !product ||
+        !product._id ||
+        !product.name ||
+        !product.price ||
+        !product.image ||
+        typeof product.name !== 'string' ||
+        typeof product.image !== 'string'
+      ) {
         return res.status(400).json({ message: 'Invalid product data' });
+      }
+
+      // Further validation
+      if (product.name.length > 100 || product.image.length > 200) {
+        return res.status(400).json({ message: 'Input exceeds maximum allowed length.' });
+      }
+
+      if (!validator.isURL(product.image)) {
+        return res.status(400).json({ message: 'Invalid image URL.' });
       }
 
       const productId = new ObjectId(product._id);
 
+      // Escape inputs
+      const sanitizedProduct = {
+        ...product,
+        name: validator.escape(product.name),
+        image: validator.escape(product.image),
+      };
+
       // Add or update product in the cart
       const existingProduct = await cartCollection.findOne({ _id: productId });
+
       if (existingProduct) {
-        await cartCollection.updateOne(
+        const updateResult = await cartCollection.updateOne(
           { _id: productId },
           { $inc: { quantity: 1 } }
         );
+
+        if (updateResult.modifiedCount === 0) {
+          return res.status(500).json({ message: 'Failed to update product in cart' });
+        }
       } else {
-        await cartCollection.insertOne({
-          ...product,
+        const insertResult = await cartCollection.insertOne({
+          ...sanitizedProduct,
           _id: productId,
           quantity: 1,
         });
+
+        if (!insertResult.acknowledged) {
+          return res.status(500).json({ message: 'Failed to add product to cart' });
+        }
       }
 
       return res.status(201).json({ message: 'Item added to cart' });
     }
 
     if (req.method === 'GET') {
-      const cartItems = await cartCollection.find().toArray();
-      res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
-      return res.status(200).json(cartItems);
+      const cart = await cartCollection.find().toArray();
+      return res.status(200).json(cart);
     }
 
     if (req.method === 'DELETE') {
@@ -47,21 +82,6 @@ export default async function handler(req, res) {
       if (!itemId || !ObjectId.isValid(itemId)) {
         return res.status(400).json({ message: 'Invalid item ID' });
       }
-
-      const handleAddToCart = async (product) => {
-        try {
-          const response = await fetch('/api/cart', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ product }),
-          });
-          if (!response.ok) throw new Error('Failed to add item to cart');
-          console.log('Item added to cart:', product);
-        } catch (err) {
-          console.error(err.message);
-        }
-      };
-      
 
       const productId = new ObjectId(itemId);
       const result = await cartCollection.deleteOne({ _id: productId });

@@ -1,23 +1,36 @@
-import React, { useState, useEffect } from 'react';
-import { Container, TextField, Button, Typography, Box, Alert, AppBar, Toolbar } from '@mui/material';
-import { useRouter } from 'next/router';
+// pages/checkout.js
 
-const CheckoutPage = () => {
+import { useState, useEffect } from 'react';
+import {
+  AppBar,
+  Toolbar,
+  Typography,
+  Container,
+  TextField,
+  Button,
+  Alert,
+  Grid,
+  CircularProgress,
+  Box,
+} from '@mui/material';
+import { useRouter } from 'next/router';
+import validator from 'validator';
+
+export default function CheckoutPage() {
   const [userDetails, setUserDetails] = useState({ name: '', email: '', address: '' });
   const [cart, setCart] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState('');
   const [successMessage, setSuccessMessage] = useState('');
-  const [loading, setLoading] = useState(true);
   const router = useRouter();
 
-  // Fetch cart items
   useEffect(() => {
     const fetchCart = async () => {
       try {
         const response = await fetch('/api/cart');
         if (!response.ok) throw new Error('Failed to fetch cart');
         const data = await response.json();
-        setCart(data); // Ensure API returns an array
+        setCart(data || []); // Assuming the API returns an array
       } catch (err) {
         setErrorMessage(err.message);
       } finally {
@@ -28,34 +41,35 @@ const CheckoutPage = () => {
     fetchCart();
   }, []);
 
-  // Handle input changes
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    setUserDetails((prev) => ({ ...prev, [name]: value }));
+
+    // Client-side validation: limit input lengths
+    let newValue = value;
+    if (name === 'name' && value.length > 50) newValue = value.slice(0, 50);
+    if (name === 'email' && value.length > 100) newValue = value.slice(0, 100);
+    if (name === 'address' && value.length > 200) newValue = value.slice(0, 200);
+
+    setUserDetails((prev) => ({ ...prev, [name]: newValue }));
   };
 
-  // Validate user input
-  const validateInput = () => {
-    if (!userDetails.name.trim() || !userDetails.email.trim() || !userDetails.address.trim()) {
-      setErrorMessage('All fields are required.');
-      return false;
-    }
-
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(userDetails.email)) {
-      setErrorMessage('Please provide a valid email address.');
-      return false;
-    }
-
-    return true;
-  };
-
-  // Place order
   const handlePlaceOrder = async () => {
     setErrorMessage('');
     setSuccessMessage('');
 
-    if (!validateInput()) return;
+    const { name, email, address } = userDetails;
+
+    // Client-side Validation
+    if (!name.trim() || !email.trim() || !address.trim()) {
+      setErrorMessage('All fields are required.');
+      return;
+    }
+
+    // Email format validation
+    if (!validator.isEmail(email)) {
+      setErrorMessage('Please enter a valid email address.');
+      return;
+    }
 
     if (cart.length === 0) {
       setErrorMessage('Your cart is empty!');
@@ -67,8 +81,17 @@ const CheckoutPage = () => {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          customerDetails: userDetails,
-          items: cart,
+          customerDetails: {
+            name: validator.escape(name),
+            email: validator.normalizeEmail(email),
+            address: validator.escape(address),
+          },
+          items: cart.map((item) => ({
+            _id: item._id,
+            name: item.name, // Already sanitized in API
+            price: item.price,
+            quantity: item.quantity,
+          })),
         }),
       });
 
@@ -78,120 +101,97 @@ const CheckoutPage = () => {
       }
 
       const data = await response.json();
-      setSuccessMessage(`Order placed successfully! Order ID: ${data.orderId}`);
+      setSuccessMessage(`Order placed successfully! Your order ID is ${data.orderId}`);
       setTimeout(() => router.push(`/confirmation?orderId=${data.orderId}`), 2000);
     } catch (err) {
       setErrorMessage(err.message);
     }
   };
 
-  // Show loading state
   if (loading) {
     return (
       <Box sx={{ textAlign: 'center', mt: 4 }}>
-        <Typography variant="h6">Loading cart details...</Typography>
+        <CircularProgress />
+        <Typography variant="h6" sx={{ mt: 2 }}>
+          Loading checkout details...
+        </Typography>
       </Box>
     );
   }
 
   return (
     <>
-      {/* Navbar */}
-      <AppBar position="static" sx={{ backgroundColor: 'orange' }}>
+      <AppBar position="static" sx={{ backgroundColor: '#ff7b54' }}>
         <Toolbar>
-          <Typography
-            variant="h6"
-            component="div"
-            sx={{ flexGrow: 1, cursor: 'pointer' }}
-            onClick={() => router.push('/')}
-          >
-            Krispy Kreme
+          <Typography variant="h6" sx={{ flexGrow: 1, textAlign: 'center' }}>
+            Checkout Page
           </Typography>
-          <Button color="inherit" onClick={() => router.push('/products')}>
-            Products
-          </Button>
-          <Button color="inherit" onClick={() => router.push('/cart')}>
-            Cart
-          </Button>
         </Toolbar>
       </AppBar>
 
-      {/* Checkout Content */}
       <Container sx={{ mt: 4 }}>
-        <Typography variant="h4" align="center" gutterBottom sx={{ color: 'orange' }}>
+        <Typography variant="h4" gutterBottom align="center">
           Checkout
         </Typography>
-
         {errorMessage && <Alert severity="error" sx={{ mb: 2 }}>{errorMessage}</Alert>}
         {successMessage && <Alert severity="success" sx={{ mb: 2 }}>{successMessage}</Alert>}
-
-        <Box component="form" sx={{ mt: 2 }}>
-          <TextField
-            label="Name"
-            name="name"
-            fullWidth
-            margin="normal"
-            value={userDetails.name}
-            onChange={handleInputChange}
-          />
-          <TextField
-            label="Email"
-            name="email"
-            fullWidth
-            margin="normal"
-            value={userDetails.email}
-            onChange={handleInputChange}
-          />
-          <TextField
-            label="Address"
-            name="address"
-            fullWidth
-            margin="normal"
-            multiline
-            rows={3}
-            value={userDetails.address}
-            onChange={handleInputChange}
-          />
-
-          <Typography variant="h5" sx={{ mt: 3, mb: 2 }}>
-            Cart Summary
-          </Typography>
-          {cart.length === 0 ? (
-            <Alert severity="info">Your cart is empty. Add some products to proceed!</Alert>
-          ) : (
-            <Box>
-              {cart.map((item, index) => (
-                <Box
-                  key={index}
-                  sx={{
-                    display: 'flex',
-                    justifyContent: 'space-between',
-                    mb: 2,
-                    p: 2,
-                    border: '1px solid #ddd',
-                    borderRadius: '8px',
-                  }}
-                >
-                  <Typography>
-                    {item.quantity} x {item.name} @ ${item.price.toFixed(2)}
-                  </Typography>
-                </Box>
-              ))}
-            </Box>
-          )}
-
-          <Button
-            variant="contained"
-            fullWidth
-            sx={{ mt: 3 }}
-            onClick={handlePlaceOrder}
-          >
-            Place Order
-          </Button>
-        </Box>
+        <Grid container spacing={2} sx={{ mt: 2 }}>
+          <Grid item xs={12}>
+            <TextField
+              label="Name"
+              name="name"
+              fullWidth
+              value={userDetails.name}
+              onChange={handleInputChange}
+              inputProps={{ maxLength: 50 }}
+            />
+          </Grid>
+          <Grid item xs={12}>
+            <TextField
+              label="Email"
+              name="email"
+              type="email"
+              fullWidth
+              value={userDetails.email}
+              onChange={handleInputChange}
+              inputProps={{ maxLength: 100 }}
+            />
+          </Grid>
+          <Grid item xs={12}>
+            <TextField
+              label="Address"
+              name="address"
+              fullWidth
+              multiline
+              rows={3}
+              value={userDetails.address}
+              onChange={handleInputChange}
+              inputProps={{ maxLength: 200 }}
+            />
+          </Grid>
+          <Grid item xs={12}>
+            <Typography variant="h6" sx={{ textAlign: 'right' }}>
+              Total: $
+              {cart
+                .reduce((sum, item) => sum + item.price * item.quantity, 0)
+                .toFixed(2)}
+            </Typography>
+          </Grid>
+          <Grid item xs={12}>
+            <Button
+              variant="contained"
+              fullWidth
+              onClick={handlePlaceOrder}
+              sx={{
+                backgroundColor: '#ff7b54',
+                '&:hover': { backgroundColor: '#ff4500' },
+              }}
+            >
+              Place Order
+            </Button>
+          </Grid>
+        </Grid>
       </Container>
     </>
   );
-};
-
-export default CheckoutPage;
+}

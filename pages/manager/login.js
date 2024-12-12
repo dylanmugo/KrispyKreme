@@ -10,7 +10,7 @@ import {
   Paper,
   Avatar,
 } from '@mui/material';
-import LockOutlinedIcon from '@mui/icons-material/LockOutlined';
+
 
 export default function ManagerLoginPage() {
   const [credentials, setCredentials] = useState({ email: '', password: '' });

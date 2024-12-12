@@ -1,119 +1,118 @@
+// pages/register.js
+
 import { useState } from 'react';
-import { useRouter } from 'next/router';
 import {
   Container,
-  Box,
-  Typography,
   TextField,
   Button,
+  Typography,
   Alert,
-  Link,
+  Box,
 } from '@mui/material';
+import { useRouter } from 'next/router';
+import validator from 'validator';
 
 export default function RegisterPage() {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [role, setRole] = useState('customer'); // Default role
+  const [credentials, setCredentials] = useState({ email: '', password: '' });
   const [errorMessage, setErrorMessage] = useState('');
   const [successMessage, setSuccessMessage] = useState('');
   const router = useRouter();
 
-  const handleRegister = async (e) => {
-    e.preventDefault();
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+
+    // Limit input lengths
+    let newValue = value;
+    if (name === 'email' && value.length > 100) newValue = value.slice(0, 100);
+    if (name === 'password' && value.length > 100) newValue = value.slice(0, 100);
+
+    setCredentials((prev) => ({ ...prev, [name]: newValue }));
+  };
+
+  const handleRegister = async () => {
     setErrorMessage('');
     setSuccessMessage('');
+
+    const { email, password } = credentials;
+
+    // Client-side Validation
+    if (!email.trim() || !password.trim()) {
+      setErrorMessage('Email and password are required.');
+      return;
+    }
+
+    if (!validator.isEmail(email)) {
+      setErrorMessage('Please enter a valid email address.');
+      return;
+    }
+
+    if (password.length < 6 || password.length > 100) {
+      setErrorMessage('Password must be between 6 and 100 characters.');
+      return;
+    }
 
     try {
       const response = await fetch('/api/register', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password, role }),
+        body: JSON.stringify({ email, password }), // Only email and password
       });
 
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.message || 'Registration failed. Please try again.');
+        throw new Error(data.message || 'Something went wrong.');
       }
 
-      setSuccessMessage('Registration successful! Redirecting to login...');
-      setTimeout(() => router.push('/login'), 2000);
+      setSuccessMessage(data.message);
+      setTimeout(() => router.push('/login'), 2000); // Redirect after 2 seconds
     } catch (error) {
-      setErrorMessage(error.message || 'Something went wrong. Please try again.');
+      setErrorMessage(error.message);
     }
   };
 
   return (
-    <Container maxWidth="sm" sx={{ py: 5 }}>
-      <Box
-        sx={{
-          backgroundColor: '#ffffff',
-          borderRadius: '15px',
-          boxShadow: '0px 4px 10px rgba(0, 0, 0, 0.1)',
-          p: 4,
-          textAlign: 'center',
-        }}
-      >
-        <Typography
-          variant="h4"
-          gutterBottom
-          sx={{ color: '#ff7b54', fontWeight: 'bold' }}
+    <Container maxWidth="sm" sx={{ mt: 4 }}>
+      <Typography variant="h4" align="center" gutterBottom>
+        Register
+      </Typography>
+
+      {errorMessage && <Alert severity="error" sx={{ mb: 2 }}>{errorMessage}</Alert>}
+      {successMessage && <Alert severity="success" sx={{ mb: 2 }}>{successMessage}</Alert>}
+
+      <Box component="form" noValidate autoComplete="off">
+        <TextField
+          label="Email"
+          name="email"
+          type="email"
+          fullWidth
+          margin="normal"
+          value={credentials.email}
+          onChange={handleInputChange}
+          inputProps={{ maxLength: 100 }}
+          required
+        />
+        <TextField
+          label="Password"
+          name="password"
+          type="password"
+          fullWidth
+          margin="normal"
+          value={credentials.password}
+          onChange={handleInputChange}
+          inputProps={{ maxLength: 100 }}
+          required
+        />
+
+        <Button
+          variant="contained"
+          color="primary"
+          fullWidth
+          sx={{ mt: 2 }}
+          onClick={handleRegister}
         >
-          Create Your Account 🍩
-        </Typography>
-        {errorMessage && (
-          <Alert severity="error" sx={{ mb: 2 }}>
-            {errorMessage}
-          </Alert>
-        )}
-        {successMessage && (
-          <Alert severity="success" sx={{ mb: 2 }}>
-            {successMessage}
-          </Alert>
-        )}
-        <form onSubmit={handleRegister}>
-          <TextField
-            fullWidth
-            label="Email"
-            type="email"
-            margin="normal"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            required
-            variant="outlined"
-          />
-          <TextField
-            fullWidth
-            label="Password"
-            type="password"
-            margin="normal"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
-            variant="outlined"
-          />
-          <Button
-            type="submit"
-            fullWidth
-            variant="contained"
-            sx={{
-              backgroundColor: '#ff7b54',
-              color: '#ffffff',
-              mt: 3,
-              py: 1.5,
-              fontSize: '16px',
-              '&:hover': { backgroundColor: '#ff5722' },
-            }}
-          >
-            Register
-          </Button>
-        </form>
-        <Typography variant="body2" sx={{ mt: 3 }}>
-          Already have an account?{' '}
-          <Link href="/login" sx={{ color: '#ff7b54', fontWeight: 'bold' }}>
-            Login
-          </Link>
-        </Typography>
+          Register
+        </Button>
       </Box>
     </Container>
   );
